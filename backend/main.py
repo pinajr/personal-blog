@@ -42,6 +42,15 @@ def update_article(article_id: int, updated_article: ArticleCreate):
     raise HTTPException(status_code=404, detail="Article not found")
 
 
+@app.delete("/api/article/{article_id}")
+def delete_article(article_id: int):
+    for article in articles:
+        if article["id"] == article_id:
+            articles.remove(article)
+            return {"message": "Article deleted sucessfully"}
+    raise HTTPException(status_code=404, detail="Article not found")
+
+
 @app.post("/api/articles")
 def create_article(article: ArticleCreate):
     # Sequential ID is a temporary stand-in until the database
