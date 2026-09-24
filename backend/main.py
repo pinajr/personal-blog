@@ -32,6 +32,16 @@ def get_article(article_id: int):
     raise HTTPException(status_code=404, detail="Article not found")
 
 
+@app.put("/api/articles/{article_id}")
+def update_article(article_id: int, updated_article: ArticleCreate):
+    for article in articles:
+        if article["id"] == article_id:
+            article['title'] = updated_article.title
+            article['content'] = updated_article.content
+            return article
+    raise HTTPException(status_code=404, detail="Article not found")
+
+
 @app.post("/api/articles")
 def create_article(article: ArticleCreate):
     # Sequential ID is a temporary stand-in until the database
