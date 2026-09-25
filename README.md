@@ -24,7 +24,37 @@ authorization are being developed progressively.
 - [ ] Docker
 - [ ] Deployment
 
-## Running locally (backend)
+## Running locally
+
+### Prerequisites
+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/)
+- [Homebrew](https://brew.sh) (macOS)
+
+### 1. Database
+
+Install and start PostgreSQL via Homebrew:
+
+```bash
+brew install postgresql@18
+echo 'export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+brew services start postgresql@18
+```
+
+Create the project's database:
+
+```bash
+psql postgres
+```
+```sql
+CREATE DATABASE personal_blog;
+```
+
+Exit with `\q`.
+
+### 2. Backend
 
 ```bash
 cd backend
