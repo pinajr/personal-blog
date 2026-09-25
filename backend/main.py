@@ -1,5 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from database import get_session
+from models import Article
 
 app = FastAPI()
 
@@ -20,8 +23,8 @@ def health_check():
 
 
 @app.get("/api/articles")
-def list_articles(limit: int = 5):
-    return {"limit": limit, "articles": articles[:limit]}
+def list_articles(limit: int = 5, db: Session = Depends(get_session)):
+    return db.query(Article).limit(limit).all()
 
 
 @app.get("/api/articles/{article_id}")
