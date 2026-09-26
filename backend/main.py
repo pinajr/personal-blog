@@ -56,10 +56,13 @@ def update_article(article_id: int, updated_article: ArticleCreate, db: Session 
     db.refresh(article)
     return article
 
+
 @app.delete("/api/article/{article_id}")
-def delete_article(article_id: int):
-    for article in articles:
-        if article["id"] == article_id:
-            articles.remove(article)
-            return {"message": "Article deleted sucessfully"}
-    raise HTTPException(status_code=404, detail="Article not found")
+def delete_article(article_id: int, db: Session = Depends(get_session)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    db.delete(article)
+    db.commit()
+    return {"message": "Article deleted succesfully"}
