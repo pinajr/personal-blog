@@ -12,11 +12,6 @@ class ArticleCreate(BaseModel):
     content: str
 
 
-# In-memory storage for now — replaced by PostgreSQL once we introduce
-# persistence (Phase 3). Data is lost on every server restart.
-articles = []
-
-
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
