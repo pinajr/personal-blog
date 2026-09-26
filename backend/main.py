@@ -28,11 +28,11 @@ def list_articles(limit: int = 5, db: Session = Depends(get_session)):
 
 
 @app.get("/api/articles/{article_id}")
-def get_article(article_id: int):
-    for article in articles:
-        if article["id"] == article_id:
-            return article
-    raise HTTPException(status_code=404, detail="Article not found")
+def get_article(article_id: int, db: Session = Depends(get_session)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return article
 
 
 @app.put("/api/articles/{article_id}")
