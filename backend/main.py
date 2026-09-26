@@ -45,14 +45,16 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
 
 
 @app.put("/api/articles/{article_id}")
-def update_article(article_id: int, updated_article: ArticleCreate):
-    for article in articles:
-        if article["id"] == article_id:
-            article['title'] = updated_article.title
-            article['content'] = updated_article.content
-            return article
-    raise HTTPException(status_code=404, detail="Article not found")
+def update_article(article_id: int, updated_article: ArticleCreate, db: Session = Depends(get_session)):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
 
+    article.title = updated_article.title
+    article.content = updated_article.content
+    db.commit()
+    db.refresh(article)
+    return article
 
 @app.delete("/api/article/{article_id}")
 def delete_article(article_id: int):
