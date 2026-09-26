@@ -35,6 +35,15 @@ def get_article(article_id: int, db: Session = Depends(get_session)):
     return article
 
 
+@app.post("/api/articles")
+def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
+    new_article = Article(title=article.title, content=article.content)
+    db.add(new_article)
+    db.commit()
+    db.refresh(new_article)
+    return new_article
+
+
 @app.put("/api/articles/{article_id}")
 def update_article(article_id: int, updated_article: ArticleCreate):
     for article in articles:
@@ -52,16 +61,3 @@ def delete_article(article_id: int):
             articles.remove(article)
             return {"message": "Article deleted sucessfully"}
     raise HTTPException(status_code=404, detail="Article not found")
-
-
-@app.post("/api/articles")
-def create_article(article: ArticleCreate):
-    # Sequential ID is a temporary stand-in until the database
-    # generates real primary keys.
-    new_article = {
-        "id": len(articles) + 1,
-        "title": article.title,
-        "content": article.content,
-    }
-    articles.append(new_article)
-    return new_article
