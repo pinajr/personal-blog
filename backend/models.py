@@ -9,4 +9,4 @@ class Article(Base):
     title = Column(Text, nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
-
+    
