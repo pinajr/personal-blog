@@ -1,10 +1,16 @@
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from database import get_session
-from models import Article
+from models import Article, User
 
 app = FastAPI()
+
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
 
 
 class ArticleCreate(BaseModel):
@@ -61,3 +67,17 @@ def delete_article(article_id: int, db: Session = Depends(get_session)):
     db.delete(article)
     db.commit()
     return {"message": "Article deleted succesfully"}
+
+
+@app.post("/api/users", status_code=201)
+def create_user(user: UserCreate, db: Session = Depends(get_session)):
+    new_user = User(username=user.username, email=user.email)
+    db.add(new_user)
+    try:
+        db.commit()
+    except IntegrityError:
+        # A failed commit leaves de session unusable until rolled back.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Username or email already exists")
+    db.refresh(new_user)
+    return db.refresh
