@@ -1,11 +1,36 @@
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_session
 from models import Article, User
+from datetime import datatime
 
 app = FastAPI()
+
+
+class ArticleCreate(BaseModel):
+    title: str
+    content: str
+    # Temporaly the client picks the author until authentication
+    # (Phase 7) lets the server derive it from the logged-in user.
+    author_id: int
+
+
+class ArticleUpdate(BaseModel):
+    title: str
+    content: str
+
+
+class ArticleResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    author_id: int
+    created_at: datetime
+    
+    # Lets Pydantic read values from SQLAlchemy ORM objects, not only dicts
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(BaseModel):
@@ -13,9 +38,27 @@ class UserCreate(BaseModel):
     email: EmailStr
 
 
-class ArticleCreate(BaseModel):
-    title: str
-    content: str
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    created_at: datatime
+
+    model_confing = ConfigDict(from_attributes=True)
+
+
+@app.post("/api/users", status_code=201, response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_session)):
+    new_user = User(username=user.username, email=user.email)
+    db.add(new_user)
+    try:
+        db.commit()
+    except IntegrityError:
+        # A failed commit leaves de session unusable until rolled back.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Username or email already exists")
+    db.refresh(new_user)
+    return db.refresh
 
 
 @app.get("/api/health")
@@ -23,12 +66,12 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/api/articles")
+@app.get("/api/articles", response_model=list[ArticleResponse])
 def list_articles(limit: int = 5, db: Session = Depends(get_session)):
     return db.query(Article).limit(limit).all()
 
 
-@app.get("/api/articles/{article_id}")
+@app.get("/api/articles/{article_id}", response_mode=ArticleResponse)
 def get_article(article_id: int, db: Session = Depends(get_session)):
     article = db.query(Article).filter(Article.id == article_id).first()
     if article is None:
@@ -36,13 +79,21 @@ def get_article(article_id: int, db: Session = Depends(get_session)):
     return article
 
 
-@app.post("/api/articles")
+@app.post("/api/articles", response_model=ArticleResponse)
 def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
-    new_article = Article(title=article.title, content=article.content)
+    author = db.query(User).filter(User.id == article.author_id).first()
+    if author is None:
+        raise HTTPException(status_code=404, detail="Author not found")
+
+    new_article = Article(
+        title=article.title,
+        content=article.content,
+        author_id=article.author_id,
+    )
     db.add(new_article)
     db.commit()
     db.refresh(new_article)
-    return new_article
+    return article
 
 
 @app.put("/api/articles/{article_id}")
@@ -67,17 +118,3 @@ def delete_article(article_id: int, db: Session = Depends(get_session)):
     db.delete(article)
     db.commit()
     return {"message": "Article deleted succesfully"}
-
-
-@app.post("/api/users", status_code=201)
-def create_user(user: UserCreate, db: Session = Depends(get_session)):
-    new_user = User(username=user.username, email=user.email)
-    db.add(new_user)
-    try:
-        db.commit()
-    except IntegrityError:
-        # A failed commit leaves de session unusable until rolled back.
-        db.rollback()
-        raise HTTPException(status_code=409, detail="Username or email already exists")
-    db.refresh(new_user)
-    return db.refresh
