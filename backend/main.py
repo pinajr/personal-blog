@@ -47,6 +47,11 @@ class UserResponse(BaseModel):
     model_confing = ConfigDict(from_attributes=True)
 
 
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.post("/api/users", status_code=201, response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_session)):
     new_user = User(username=user.username, email=user.email)
@@ -59,11 +64,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
         raise HTTPException(status_code=409, detail="Username or email already exists")
     db.refresh(new_user)
     return db.refresh
-
-
-@app.get("/api/health")
-def health_check():
-    return {"status": "ok"}
 
 
 @app.get("/api/articles", response_model=list[ArticleResponse])
