@@ -12,7 +12,7 @@ app = FastAPI()
 class ArticleCreate(BaseModel):
     title: str
     content: str
-    # Temporaly the client picks the author until authentication
+    # Temporally the client picks the author until authentication
     # (Phase 7) lets the server derive it from the logged-in user.
     author_id: int
 
@@ -133,4 +133,4 @@ def delete_article(article_id: int, db: Session = Depends(get_session)):
 
     db.delete(article)
     db.commit()
-    return {"message": "Article deleted succesfully"}
+    return {"message": "Article deleted successfully"}

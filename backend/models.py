@@ -9,6 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(Text, nullable=False, unique=True)
     email = Column(Text, nullable=False, unique=True)
+    password_hash = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     articles = relationship("Article", back_populates="author")

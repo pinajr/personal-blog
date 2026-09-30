@@ -69,7 +69,9 @@ dependencies = [
     { name = "alembic" },
     { name = "fastapi", extra = ["standard"] },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pydantic" },
     { name = "sqlalchemy" },
+    { name = "uliweb-alembic" },
 ]
 
 [package.metadata]
@@ -77,7 +79,9 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.20.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.6" },
+    { name = "pydantic", specifier = ">=2.13.5" },
     { name = "sqlalchemy", specifier = ">=2.1.1" },
+    { name = "uliweb-alembic", specifier = ">=0.6.9" },
 ]
 
 [[package]]
@@ -1047,6 +1051,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e4/31/3d74fa778a63b98b7374323befcc0be5ab3bd94afd4096a0124e7379152c/tzdata-2026.4.tar.gz", hash = "sha256:f1b8bd365d8d210c55353f4d7f8d6d8561c0ba50d704b700d195a9424bba0d79", size = 199350, upload-time = "2026-09-12T12:56:03.251Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f9/bc/8737e8d54cf51106118039b83f485a4783112fab49ea9d044b234978a46e/tzdata-2026.4-py2.py3-none-any.whl", hash = "sha256:c2169a8b0a7a5e9674da5a135ccdfb2b3e671b333ed9fed17b41f73c34476e81", size = 347494, upload-time = "2026-09-12T12:56:01.67Z" },
+]
+
+[[package]]
+name = "uliweb-alembic"
+version = "0.6.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mako" },
+    { name = "sqlalchemy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/e4/4cdee9e8ac5e0d4ed9d190f59eb7f4f359fa0d4244472fa1a3cc31f7edc8/uliweb-alembic-0.6.9.tar.gz", hash = "sha256:f8044301d6252dac2a509d5dcee515255b986d7496e916fbb21632c8a1749ef0", size = 480617, upload-time = "2016-02-06T12:36:55.893Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/31/da67d80b67d067977a0244019995f3d0e90570baac79483855d51f1c069f/uliweb_alembic-0.6.9-py2.py3-none-any.whl", hash = "sha256:f81c8570548e4d36d85120838951f8936125d22b34df40d5ad90967441dd9599", size = 299852, upload-time = "2016-02-06T12:38:49.659Z" },
 ]
 
 [[package]]
