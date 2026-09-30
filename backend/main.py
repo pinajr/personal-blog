@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_session
 from models import Article, User
-from datetime import datatime
+from datetime import datetime
 
 app = FastAPI()
 
@@ -42,9 +42,9 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
-    created_at: datatime
+    created_at: datetime
 
-    model_confing = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 @app.get("/api/health")
@@ -63,7 +63,23 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
         db.rollback()
         raise HTTPException(status_code=409, detail="Username or email already exists")
     db.refresh(new_user)
-    return db.refresh
+    return new_user
+
+
+@app.get("/api/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_session)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+    
+
+@app.get("/api/users/{user_id}/articles", response_model=list[ArticleResponse])
+def list_author_articles(user_id: int, limit: int = 10, db: Session = Depends(get_session)):
+    author = db.query(User).filter(User.id == user_id).first()
+    if author is None:
+        raise HTTPException(status_code=404, detail="Author not found")
+    return db.query(Article).filter(Article.author_id == user_id).limit(limit).all()
 
 
 @app.get("/api/articles", response_model=list[ArticleResponse])
@@ -71,7 +87,7 @@ def list_articles(limit: int = 5, db: Session = Depends(get_session)):
     return db.query(Article).limit(limit).all()
 
 
-@app.get("/api/articles/{article_id}", response_mode=ArticleResponse)
+@app.get("/api/articles/{article_id}", response_model=ArticleResponse)
 def get_article(article_id: int, db: Session = Depends(get_session)):
     article = db.query(Article).filter(Article.id == article_id).first()
     if article is None:
@@ -93,7 +109,7 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
     db.add(new_article)
     db.commit()
     db.refresh(new_article)
-    return article
+    return new_article
 
 
 @app.put("/api/articles/{article_id}")
