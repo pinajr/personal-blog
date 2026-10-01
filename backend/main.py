@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_session
 from models import Article, User
+from security import get_password_hash
 from datetime import datetime
 
 app = FastAPI()
@@ -36,6 +37,7 @@ class ArticleResponse(BaseModel):
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
+    password: str
 
 
 class UserResponse(BaseModel):
@@ -54,7 +56,9 @@ def health_check():
 
 @app.post("/api/users", status_code=201, response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_session)):
-    new_user = User(username=user.username, email=user.email)
+    hashed_password = get_password_hash(user.password)
+
+    new_user = User(username=user.username, email=user.email, password_hash=hashed_password)
     db.add(new_user)
     try:
         db.commit()
