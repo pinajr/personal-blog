@@ -25,3 +25,12 @@ class Article(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     author = relationship("User", back_populates="articles")
+
+
+class LoginSession(Base):
+    __tablename__ = "login_sessions"
+
+    token_hash = Column(Text, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
