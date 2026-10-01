@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_session
 from models import Article, User
-from security import get_password_hash
+from security import get_password_hash, verify_password
 from datetime import datetime
 
 app = FastAPI()
@@ -49,6 +49,11 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
@@ -68,6 +73,14 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
         raise HTTPException(status_code=409, detail="Username or email already exists")
     db.refresh(new_user)
     return new_user
+
+
+@app.post("/api/login", response_model=UserResponse)
+def authenticate_user(login: LoginRequest, db: Session = Depends(get_session)):
+    user = db.query(User).filter(User.username == login.username).first()
+    if user is None or not verify_password(login.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return user
 
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
