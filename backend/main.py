@@ -1,11 +1,11 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Response
 from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_session
-from models import Article, User
-from security import get_password_hash, verify_password
-from datetime import datetime
+from models import Article, User, LoginSession
+from security import get_password_hash, verify_password, generate_session_token, digest_session_token
+from datetime import datetime, timedelta, timezone
 
 app = FastAPI()
 
@@ -75,12 +75,27 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
     return new_user
 
 
-@app.post("/api/login", response_model=UserResponse)
-def authenticate_user(login: LoginRequest, db: Session = Depends(get_session)):
+@app.post("/api/login")
+def authenticate_user(login: LoginRequest, response: Response,
+                      db: Session = Depends(get_session)):
     user = db.query(User).filter(User.username == login.username).first()
     if user is None or not verify_password(login.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user
+
+    token = generate_session_token()
+    new_session = LoginSession(
+        token_hash=digest_session_token(token),
+        user_id=user.id,
+        expires_at=datetime.now(timezone.utc) + timedelta(seconds=1800),
+    )
+    db.add(new_session)
+    db.commit()
+
+    response.set_cookie(
+        key="session_token", value=token, httponly=True,
+        max_age=1800, secure=False, samesite="lax", path="/",
+    )
+    return {"message": "Logged in successfully"}
 
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
