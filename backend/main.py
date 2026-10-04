@@ -1,57 +1,29 @@
-from fastapi import FastAPI, HTTPException, Depends, Response
-from pydantic import BaseModel, ConfigDict, EmailStr
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from database import get_session
-from models import Article, User, LoginSession
-from security import get_password_hash, verify_password, generate_session_token, digest_session_token
 from datetime import datetime, timedelta, timezone
 
+from fastapi import Depends, FastAPI, HTTPException, Response
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from auth import get_current_user
+from database import get_session
+from models import Article, LoginSession, User
+from security import (
+    digest_session_token,
+    generate_session_token,
+    get_password_hash,
+    verify_password,
+)
+from schemas import (
+    ArticleCreate,
+    ArticleResponse,
+    ArticleUpdate,
+    LoginRequest,
+    UserCreate,
+    UserResponse,
+)
+
+SESSION_LIFETIME = timedelta(minutes=30)
 app = FastAPI()
-
-
-class ArticleCreate(BaseModel):
-    title: str
-    content: str
-    # Temporally the client picks the author until authentication
-    # (Phase 7) lets the server derive it from the logged-in user.
-    author_id: int
-
-
-class ArticleUpdate(BaseModel):
-    title: str
-    content: str
-
-
-class ArticleResponse(BaseModel):
-    id: int
-    title: str
-    content: str
-    author_id: int
-    created_at: datetime
-    
-    # Lets Pydantic read values from SQLAlchemy ORM objects, not only dicts
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    email: EmailStr
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
 
 
 @app.get("/api/health")
@@ -68,7 +40,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
     try:
         db.commit()
     except IntegrityError:
-        # A failed commit leaves de session unusable until rolled back.
+        # A failed commit leaves the session unusable until it is rolled back.
         db.rollback()
         raise HTTPException(status_code=409, detail="Username or email already exists")
     db.refresh(new_user)
@@ -76,24 +48,30 @@ def create_user(user: UserCreate, db: Session = Depends(get_session)):
 
 
 @app.post("/api/login")
-def authenticate_user(login: LoginRequest, response: Response,
-                      db: Session = Depends(get_session)):
-    user = db.query(User).filter(User.username == login.username).first()
-    if user is None or not verify_password(login.password, user.password_hash):
+def login(
+    credentials: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_session),
+):
+    user = db.query(User).filter(User.username == credentials.username).first()
+    if user is None or not verify_password(credentials.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = generate_session_token()
     new_session = LoginSession(
         token_hash=digest_session_token(token),
         user_id=user.id,
-        expires_at=datetime.now(timezone.utc) + timedelta(seconds=1800),
+        expires_at=datetime.now(timezone.utc) + SESSION_LIFETIME,
     )
     db.add(new_session)
     db.commit()
 
     response.set_cookie(
         key="session_token", value=token, httponly=True,
-        max_age=1800, secure=False, samesite="lax", path="/",
+        max_age=int(SESSION_LIFETIME.total_seconds()),
+        secure=False,
+        samesite="lax",
+        path="/",
     )
     return {"message": "Logged in successfully"}
 
@@ -127,16 +105,16 @@ def get_article(article_id: int, db: Session = Depends(get_session)):
     return article
 
 
-@app.post("/api/articles", response_model=ArticleResponse)
-def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
-    author = db.query(User).filter(User.id == article.author_id).first()
-    if author is None:
-        raise HTTPException(status_code=404, detail="Author not found")
-
+@app.post("/api/articles", status_code=201, response_model=ArticleResponse)
+def create_article(
+    article: ArticleCreate,
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     new_article = Article(
         title=article.title,
         content=article.content,
-        author_id=article.author_id,
+        author_id=current_user.id,
     )
     db.add(new_article)
     db.commit()
@@ -144,11 +122,18 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_session)):
     return new_article
 
 
-@app.put("/api/articles/{article_id}")
-def update_article(article_id: int, updated_article: ArticleCreate, db: Session = Depends(get_session)):
+@app.put("/api/articles/{article_id}", response_model=ArticleResponse)
+def update_article(
+    article_id: int,
+    updated_article: ArticleUpdate,
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
+    if current_user.id != article.author_id:
+        raise HTTPException(status_code=403, detail="You don't own this article")
 
     article.title = updated_article.title
     article.content = updated_article.content
@@ -157,11 +142,17 @@ def update_article(article_id: int, updated_article: ArticleCreate, db: Session 
     return article
 
 
-@app.delete("/api/article/{article_id}")
-def delete_article(article_id: int, db: Session = Depends(get_session)):
+@app.delete("/api/articles/{article_id}")
+def delete_article(
+    article_id: int,
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     article = db.query(Article).filter(Article.id == article_id).first()
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
+    if current_user.id != article.author_id:
+        raise HTTPException(status_code=403, detail="You don't own this article")
 
     db.delete(article)
     db.commit()
