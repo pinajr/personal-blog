@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Response
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -74,6 +74,33 @@ def login(
         path="/",
     )
     return {"message": "Logged in successfully"}
+
+
+@app.post("/api/logout")
+def logout(
+    response: Response,
+    session_token: str | None = Cookie(default=None),
+    db: Session = Depends(get_session),
+):
+    message = {"message": "Logged out successfully"}
+    response.delete_cookie(key="session_token", path="/")
+
+    if session_token is None:
+        return message
+    token_hash = digest_session_token(session_token)
+
+    login_session = (
+        db.query(LoginSession)
+        .filter(LoginSession.token_hash == token_hash)
+        .first()
+    )
+    if login_session is None:
+        return message
+
+    db.delete(login_session)
+    db.commit()
+    return message
+
 
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
