@@ -101,12 +101,23 @@ def list_author_articles(
     author = db.query(User).filter(User.id == user_id).first()
     if author is None:
         raise HTTPException(status_code=404, detail="Author not found")
-    return db.query(Article).filter(Article.author_id == user_id).limit(limit).all()
+    return (
+        db.query(Article)
+        .filter(Article.author_id == user_id)
+        .order_by(Article.created_at.desc(), Article.id.desc())
+        .limit(limit)
+        .all()
+    )
 
 
 @app.get("/api/articles", response_model=list[ArticleResponse])
 def list_articles(limit: Annotated[int, Query(ge=1, le=100)] = 3, db: Session = Depends(get_session)):
-    return db.query(Article).limit(limit).all()
+    return (
+        db.query(Article)
+        .order_by(Article.created_at.desc(), Article.id.desc())
+        .limit(limit)
+        .all()
+    )
 
 
 @app.get("/api/articles/{article_id}", response_model=ArticleResponse)
