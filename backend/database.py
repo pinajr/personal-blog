@@ -1,9 +1,9 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Hardcoded for local development without a password. Will move to an
-# environment variable before this touches production (Phase 8).
-DATABASE_URL = "postgresql://localhost/personal_blog"
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
