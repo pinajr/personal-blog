@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Response
+from typing import Annotated
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Response, Query
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
@@ -92,7 +93,11 @@ def get_user(user_id: int, db: Session = Depends(get_session)):
     
 
 @app.get("/api/users/{user_id}/articles", response_model=list[ArticleResponse])
-def list_author_articles(user_id: int, limit: int = 10, db: Session = Depends(get_session)):
+def list_author_articles(
+    user_id: int,
+    limit: Annotated[int, Query(ge=1, le=100)] = 5,
+    db: Session = Depends(get_session),
+):
     author = db.query(User).filter(User.id == user_id).first()
     if author is None:
         raise HTTPException(status_code=404, detail="Author not found")
@@ -100,7 +105,7 @@ def list_author_articles(user_id: int, limit: int = 10, db: Session = Depends(ge
 
 
 @app.get("/api/articles", response_model=list[ArticleResponse])
-def list_articles(limit: int = 5, db: Session = Depends(get_session)):
+def list_articles(limit: Annotated[int, Query(ge=1, le=100)] = 3, db: Session = Depends(get_session)):
     return db.query(Article).limit(limit).all()
 
 
