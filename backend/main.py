@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Response
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
@@ -10,7 +9,6 @@ from models import Article, LoginSession, User
 from security import (
     digest_session_token,
     generate_session_token,
-    get_password_hash,
     verify_password,
 )
 from schemas import (
@@ -18,7 +16,6 @@ from schemas import (
     ArticleResponse,
     ArticleUpdate,
     LoginRequest,
-    UserCreate,
     UserResponse,
 )
 
@@ -29,22 +26,6 @@ app = FastAPI()
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.post("/api/users", status_code=201, response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_session)):
-    hashed_password = get_password_hash(user.password)
-
-    new_user = User(username=user.username, email=user.email, password_hash=hashed_password)
-    db.add(new_user)
-    try:
-        db.commit()
-    except IntegrityError:
-        # A failed commit leaves the session unusable until it is rolled back.
-        db.rollback()
-        raise HTTPException(status_code=409, detail="Username or email already exists")
-    db.refresh(new_user)
-    return new_user
 
 
 @app.post("/api/login")
@@ -100,7 +81,6 @@ def logout(
     db.delete(login_session)
     db.commit()
     return message
-
 
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
