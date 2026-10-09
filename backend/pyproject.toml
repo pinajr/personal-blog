@@ -11,3 +11,9 @@ dependencies = [
     "sqlalchemy>=2.1.1",
     "uliweb-alembic>=0.6.9",
 ]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+]
