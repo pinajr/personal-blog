@@ -4,14 +4,15 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"
 
 import pytest
+from datetime import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from models import Article, User
 from database import Base, get_session
 from main import app
-import models
 
 
 @pytest.fixture
@@ -50,3 +51,29 @@ def client(db_session):
             yield test_client
     finally:
         app.dependency_overrides.pop(get_session, None)
+
+
+@pytest.fixture
+def author_with_articles(db_session):
+    author = User(
+        username="test-author",
+        email="author@example.com",
+        password_hash="test-hash",
+    )
+    db_session.add(author)
+    db_session.commit()
+
+    older_article = Article(
+        title="Older Article",
+        content="Older content.",
+        created_at=datetime(2026, 1, 1),
+        author_id=author.id,
+    )
+    newer_article = Article(
+        title="Newer Article",
+        content="Newer content",
+        created_at=datetime(2026, 1, 2),
+        author_id=author.id,
+    )
+    db_session.add_all([older_article, newer_article])
+    db_session.commit()
