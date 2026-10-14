@@ -15,7 +15,7 @@ import models
 
 
 @pytest.fixture
-def client():
+def db_session():
     test_engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
@@ -29,18 +29,24 @@ def client():
         bind=test_engine,
     )
 
+    db = testing_session_local()
+    try:
+        yield db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=test_engine)
+        test_engine.dispose()
+
+
+@pytest.fixture
+def client(db_session):
     def override_get_session():
-        db = testing_session_local()
-        try:
-            yield db
-        finally:
-            db.close()
+        return db_session
 
     app.dependency_overrides[get_session] = override_get_session
 
-    with TestClient(app) as test_client:
-        yield test_client
-
-    app.dependency_overrides.clear()
-    Base.metadata.drop_all(bind=test_engine)
-    test_engine.dispose()
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.pop(get_session, None)
