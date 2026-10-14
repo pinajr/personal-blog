@@ -55,3 +55,35 @@ def test_articles_are_ordered_newest_first(client, db_session):
     assert response.status_code == 200
     titles = [article["title"] for article in response.json()]
     assert titles == ["Newer Article", "Older Article"]
+
+
+def test_articles_respect_limit(client, db_session):
+    author = User(
+        username="test-author",
+        email="author@example.com",
+        password_hash="test-hash",
+    )
+    db_session.add(author)
+    db_session.commit()
+    db_session.refresh(author)
+
+    older_article = Article(
+        title="Older Article",
+        content="Older content.",
+        created_at=datetime(2026, 1, 1),
+        author_id=author.id,
+    )
+    newer_article = Article(
+        title="Newer Article",
+        content="Newer content.",
+        created_at=datetime(2026, 1, 2),
+        author_id=author.id,
+    )
+    db_session.add_all([older_article, newer_article])
+    db_session.commit()
+
+    response = client.get("/api/articles?limit=1")
+
+    assert response.status_code == 200
+    titles = [article["title"] for article in response.json()]
+    assert titles == ["Newer Article"]
