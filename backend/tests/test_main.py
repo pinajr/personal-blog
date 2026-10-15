@@ -126,3 +126,28 @@ def test_login_sets_session_cookie(client, user_with_password):
     assert response.status_code == 200
     assert response.json() == {"message": "Logged in successfully"}
     assert response.cookies.get("session_token") is not None
+
+
+def test_create_article_with_authenticated_user(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": 'test-password',
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.post(
+        "/api/articles",
+        json={
+            "title": "Test Article",
+            "content": "Test content.",
+        },
+    )
+    assert response.status_code == 201
+
+    article_data = response.json()
+    assert article_data["title"] == "Test Article"
+    assert article_data["content"] == "Test content."
+    assert article_data["author_id"] == user_with_password.id
