@@ -177,3 +177,10 @@ def test_login_rejects_unknown_username(client, user_with_password):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid credentials"}
+
+
+def test_logout_succeeds_without_session(client):
+    response = client.post("/api/logout")
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Logged out successfully"}
