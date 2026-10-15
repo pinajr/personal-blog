@@ -225,3 +225,10 @@ def test_update_article_requires_authentication(client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid or expired session"}
+
+
+def test_delete_article_requires_authentication(client):
+    response = client.delete("/api/articles/1")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
