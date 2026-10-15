@@ -20,7 +20,7 @@ def test_list_articles_returns_empty_list(client):
     assert response.json() == []
 
 
-def test_articles_are_ordered_newest_first(client, db_session, author_with_articles):
+def test_articles_are_ordered_newest_first(client, author_with_articles):
     response = client.get("/api/articles")
 
     assert response.status_code == 200
@@ -28,9 +28,16 @@ def test_articles_are_ordered_newest_first(client, db_session, author_with_artic
     assert titles == ["Newer Article", "Older Article"]
 
 
-def test_articles_respect_limit(client, db_session, author_with_articles):
+def test_articles_respect_limit(client, author_with_articles):
     response = client.get("/api/articles?limit=1")
 
     assert response.status_code == 200
     titles = [article["title"] for article in response.json()]
     assert titles == ["Newer Article"]
+
+
+def test_list_author_articles_returns_404_when_author_does_not_exist(client):
+    response = client.get("/api/users/23/articles")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Author not found"}
