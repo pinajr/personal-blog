@@ -66,3 +66,9 @@ def test_list_author_articles_respects_limit(client, author_with_articles):
     assert response.status_code == 200
     titles = [article["title"] for article in response.json()]
     assert titles == ["Newer Article"]
+
+
+def test_author_articles_reject_limit_below_minimum(client):
+    response = client.get("/api/users/23/articles?limit=0")
+
+    assert response.status_code == 422
