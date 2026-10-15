@@ -43,8 +43,16 @@ def test_list_author_articles_returns_404_when_author_does_not_exist(client):
     assert response.json() == {"detail": "Author not found"}
 
 
-def test_empty_articles_for_author(client, author_without_articles):
+def test_list_author_articles_returns_empty_list(client, author_without_articles):
     response = client.get(f"/api/users/{author_without_articles}/articles")
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_list_author_articles_returns_articles(client, author_with_articles):
+    response = client.get(f"/api/users/{author_with_articles.id}/articles")
+
+    assert response.status_code == 200
+    titles = [article["title"] for article in response.json()]
+    assert titles == ["Newer Article", "Older Article"]

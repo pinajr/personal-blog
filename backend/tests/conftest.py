@@ -78,6 +78,8 @@ def author_with_articles(db_session):
     db_session.add_all([older_article, newer_article])
     db_session.commit()
 
+    return author
+
 
 @pytest.fixture
 def author_without_articles(db_session):
@@ -88,6 +90,5 @@ def author_without_articles(db_session):
     )
     db_session.add(author)
     db_session.commit()
-    db_session.refresh(author)
 
     return author.id
