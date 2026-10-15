@@ -91,4 +91,4 @@ def author_without_articles(db_session):
     db_session.add(author)
     db_session.commit()
 
-    return author.id
+    return author
