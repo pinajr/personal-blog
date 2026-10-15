@@ -78,3 +78,10 @@ def test_author_articles_reject_limit_above_maximum(client):
     response = client.get("/api/users/23/articles?limit=101")
 
     assert response.status_code == 422
+
+
+def test_get_article_returns_404_when_article_does_not_exist(client):
+    response = client.get("/api/articles/999")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Article not found"}
