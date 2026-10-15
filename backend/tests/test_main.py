@@ -1,21 +1,25 @@
 def test_health(client):
     response = client.get("/api/health")
+
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
 def test_articles_reject_limit_below_minimum(client):
     response = client.get("/api/articles?limit=0")
+
     assert response.status_code == 422
 
 
 def test_articles_reject_limit_above_maximum(client):
     response = client.get("/api/articles?limit=101")
+
     assert response.status_code == 422
 
 
 def test_list_articles_returns_empty_list(client):
     response = client.get("/api/articles")
+
     assert response.status_code == 200
     assert response.json() == []
 
@@ -85,3 +89,13 @@ def test_get_article_returns_404_when_article_does_not_exist(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Article not found"}
+
+
+def test_get_article_returns_article_when_it_exists(client, article):
+    response = client.get(f"/api/articles/{article.id}")
+
+    assert response.status_code == 200
+
+    article_data = response.json()
+    assert article_data["title"] == "New Article"
+    assert article_data["content"] == "New content."

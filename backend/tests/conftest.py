@@ -92,3 +92,25 @@ def author_without_articles(db_session):
     db_session.commit()
 
     return author
+
+
+@pytest.fixture
+def article(db_session):
+    author = User(
+        username="test-author",
+        email="author@example.com",
+        password_hash="test-hash",
+    )
+    db_session.add(author)
+    db_session.commit()
+
+    new_article = Article(
+        title="New Article",
+        content="New content.",
+        created_at=datetime(2026, 1, 1),
+        author_id=author.id,
+    )
+    db_session.add(new_article)
+    db_session.commit()
+
+    return new_article
