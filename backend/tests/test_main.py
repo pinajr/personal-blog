@@ -41,3 +41,10 @@ def test_list_author_articles_returns_404_when_author_does_not_exist(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Author not found"}
+
+
+def test_empty_articles_for_author(client, author_without_articles):
+    response = client.get(f"/api/users/{author_without_articles}/articles")
+
+    assert response.status_code == 200
+    assert response.json() == []

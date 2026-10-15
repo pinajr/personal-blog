@@ -77,3 +77,17 @@ def author_with_articles(db_session):
     )
     db_session.add_all([older_article, newer_article])
     db_session.commit()
+
+
+@pytest.fixture
+def author_without_articles(db_session):
+    author = User(
+        username="test-author",
+        email="author@example.com",
+        password_hash="test-hash",
+    )
+    db_session.add(author)
+    db_session.commit()
+    db_session.refresh(author)
+
+    return author.id
