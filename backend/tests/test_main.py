@@ -72,3 +72,9 @@ def test_author_articles_reject_limit_below_minimum(client):
     response = client.get("/api/users/23/articles?limit=0")
 
     assert response.status_code == 422
+
+
+def test_author_articles_reject_limit_above_maximum(client):
+    response = client.get("/api/users/23/articles?limit=101")
+
+    assert response.status_code == 422
