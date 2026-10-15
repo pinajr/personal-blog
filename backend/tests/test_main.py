@@ -212,3 +212,16 @@ def test_logout_invalidates_session(client, user_with_password):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid or expired session"}
+
+
+def test_update_article_requires_authentication(client):
+    response = client.put(
+        "/api/articles/1",
+        json={
+            "title": "Test Article",
+            "content": "Test content.",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
