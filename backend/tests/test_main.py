@@ -112,3 +112,17 @@ def test_create_article_requires_authentication(client):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid or expired session"}
+
+
+def test_login_sets_session_cookie(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": 'test-password',
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Logged in successfully"}
+    assert response.cookies.get("session_token") is not None

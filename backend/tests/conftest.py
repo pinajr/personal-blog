@@ -13,6 +13,7 @@ from sqlalchemy.pool import StaticPool
 from models import Article, User
 from database import Base, get_session
 from main import app
+from security import get_password_hash
 
 
 @pytest.fixture
@@ -114,3 +115,17 @@ def article(db_session):
     db_session.commit()
 
     return new_article
+
+
+@pytest.fixture
+def user_with_password(db_session):
+    password_hash = get_password_hash('test-password')
+    user = User(
+        username="test-user",
+        email="user@example.com",
+        password_hash=password_hash,
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    return user
