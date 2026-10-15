@@ -164,3 +164,16 @@ def test_login_rejects_incorrect_password(client, user_with_password):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid credentials"}
+
+
+def test_login_rejects_unknown_username(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": "wrong-username",
+            "password": "test-password",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid credentials"}
