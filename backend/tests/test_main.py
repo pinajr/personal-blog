@@ -184,3 +184,31 @@ def test_logout_succeeds_without_session(client):
 
     assert response.status_code == 200
     assert response.json() == {"message": "Logged out successfully"}
+
+
+def test_logout_invalidates_session(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+    assert response.status_code == 200
+    token = response.cookies.get("session_token")
+    assert token is not None
+
+    response = client.post("/api/logout")
+    assert response.status_code == 200
+
+    client.cookies.set("session_token", token)
+    response = client.post(
+        "/api/articles",
+        json={
+            "title": "Test Article",
+            "content": "Test content.",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
