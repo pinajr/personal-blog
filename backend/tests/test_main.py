@@ -151,3 +151,16 @@ def test_create_article_with_authenticated_user(client, user_with_password):
     assert article_data["title"] == "Test Article"
     assert article_data["content"] == "Test content."
     assert article_data["author_id"] == user_with_password.id
+
+
+def test_login_rejects_incorrect_password(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "wrong-password",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid credentials"}
