@@ -56,3 +56,13 @@ def test_list_author_articles_returns_articles(client, author_with_articles):
     assert response.status_code == 200
     titles = [article["title"] for article in response.json()]
     assert titles == ["Newer Article", "Older Article"]
+
+
+def test_list_author_articles_respects_limit(client, author_with_articles):
+    response = client.get(
+        f"/api/users/{author_with_articles.id}/articles?limit=1"
+    )
+
+    assert response.status_code == 200
+    titles = [article["title"] for article in response.json()]
+    assert titles == ["Newer Article"]
