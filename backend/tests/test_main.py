@@ -99,3 +99,16 @@ def test_get_article_returns_article_when_it_exists(client, article):
     article_data = response.json()
     assert article_data["title"] == "New Article"
     assert article_data["content"] == "New content."
+
+
+def test_create_article_requires_authentication(client):
+    response = client.post(
+        "/api/articles",
+        json={
+            "title": "Test Article",
+            "content": "Test content.",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
