@@ -348,3 +348,9 @@ def test_delete_nonexistent_article_returns_404(client, user_with_password):
     response = client.delete("/api/articles/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Article not found"}
+
+
+def test_get_user_returns_404_when_user_does_not_exist(client):
+    response = client.get("/api/users/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
