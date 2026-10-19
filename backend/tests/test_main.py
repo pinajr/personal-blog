@@ -312,3 +312,24 @@ def test_owner_can_delete_article(client, user_with_password, article_owned_by_u
 
     response = client.get(f"/api/articles/{article_owned_by_user.id}")
     assert response.status_code == 404
+
+
+def test_update_nonexistent_article_returns_404(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.put(
+        "/api/articles/999",
+        json={
+            "title": "Test Title",
+            "content": "A test content.",
+        },
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Article not found"}
