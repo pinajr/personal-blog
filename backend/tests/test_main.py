@@ -354,3 +354,13 @@ def test_get_user_returns_404_when_user_does_not_exist(client):
     response = client.get("/api/users/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "User not found"}
+
+
+def test_get_user_does_not_expose_password_hash(client, user_with_password):
+    response = client.get(f"/api/users/{user_with_password.id}")
+    assert response.status_code == 200
+
+    user_data = response.json()
+    assert user_data["username"] == user_with_password.username
+    assert "password" not in user_data
+    assert "password_hash" not in user_data
