@@ -129,3 +129,17 @@ def user_with_password(db_session):
     db_session.commit()
 
     return user
+
+
+@pytest.fixture
+def article_owned_by_user(db_session, user_with_password):
+    article = Article(
+        title="Test Article",
+        content="Test content.",
+        created_at=datetime(2026, 1, 1),
+        author_id=user_with_password.id,
+    )
+    db_session.add(article)
+    db_session.commit()
+
+    return article

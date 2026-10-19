@@ -270,3 +270,27 @@ def test_delete_article_forbidden_for_non_owner(client, user_with_password, arti
 
     assert response.status_code == 403
     assert response.json() == {"detail": "You don't own this article"}
+
+
+def test_owner_can_update_article(client, user_with_password, article_owned_by_user):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.put(
+        f"/api/articles/{article_owned_by_user.id}",
+        json={
+            "title": "A New Title",
+            "content": "A new content.",
+        },
+    )
+    assert response.status_code == 200
+
+    article_data = response.json()
+    assert article_data["title"] == "A New Title"
+    assert article_data["content"] == "A new content."
