@@ -294,3 +294,21 @@ def test_owner_can_update_article(client, user_with_password, article_owned_by_u
     article_data = response.json()
     assert article_data["title"] == "A New Title"
     assert article_data["content"] == "A new content."
+
+
+def test_owner_can_delete_article(client, user_with_password, article_owned_by_user):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.delete(f"/api/articles/{article_owned_by_user.id}")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Article deleted successfully"}
+
+    response = client.get(f"/api/articles/{article_owned_by_user.id}")
+    assert response.status_code == 404
