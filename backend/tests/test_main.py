@@ -333,3 +333,18 @@ def test_update_nonexistent_article_returns_404(client, user_with_password):
     )
     assert response.status_code == 404
     assert response.json() == {"detail": "Article not found"}
+
+
+def test_delete_nonexistent_article_returns_404(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.delete("/api/articles/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Article not found"}
