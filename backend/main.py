@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta, timezone
-
 from typing import Annotated
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Response, Query
+
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Response, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 from auth import get_current_user
 from database import get_session
@@ -24,17 +25,40 @@ from schemas import (
 SESSION_LIFETIME = timedelta(minutes=30)
 app = FastAPI()
 
-allowed_origins = [
-    "http://localhost:5173"
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Frontend development server
+    "http://localhost:8000",  # Backend Swagger UI
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type"],
 )
+
+
+@app.middleware("http")
+async def csrf_origin_protection(request: Request, call_next):
+    if request.method in ["GET", "HEAD", "OPTIONS"]:
+        return await call_next(request)
+
+    origin = request.headers.get("origin")
+
+    if not origin:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Origin header is required"}
+        )
+
+    if origin not in ALLOWED_ORIGINS:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Origin is not allowed"}
+        )
+
+    return await call_next(request)
 
 
 @app.get("/api/health")

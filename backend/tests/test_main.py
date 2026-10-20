@@ -36,6 +36,35 @@ def test_cors_rejects_unknown_origin(client):
     assert "access-control-allow-origin" not in response.headers
 
 
+def test_csrf_rejects_missing_origin(client):
+    response = client.post("/api/logout", headers={"Origin": ""})
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Origin header is required"}
+
+
+def test_csrf_rejects_untrusted_origin(client):
+    response = client.post(
+        "/api/logout",
+        headers={"Origin": "http://malicious.example"},
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Origin is not allowed"}
+
+
+def test_csrf_allows_backend_docs_origin(client):
+    response = client.post(
+        "/api/login",
+        json={"username": "missing-user", "password": "wrong-password"},
+        headers={"Origin": "http://localhost:8000"},
+    )
+
+    # The request passes the CSRF check and reaches the login route.
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid credentials"}
+
+
 def test_articles_reject_limit_below_minimum(client):
     response = client.get("/api/articles?limit=0")
 
