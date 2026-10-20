@@ -4,16 +4,16 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from models import Article, User
+from models import Article, User, LoginSession
 from database import Base, get_session
 from main import app
-from security import get_password_hash
+from security import get_password_hash, generate_session_token, digest_session_token
 
 
 @pytest.fixture
@@ -143,3 +143,17 @@ def article_owned_by_user(db_session, user_with_password):
     db_session.commit()
 
     return article
+
+
+@pytest.fixture
+def expired_session_token(db_session, user_with_password):
+    token = generate_session_token()
+    login = LoginSession(
+        token_hash=digest_session_token(token),
+        user_id=user_with_password.id,
+        expires_at=datetime.now(timezone.utc) - timedelta(minutes=1),
+    )
+    db_session.add(login)
+    db_session.commit()
+
+    return token

@@ -365,3 +365,17 @@ def test_get_user_does_not_expose_password_hash(client, user_with_password):
     assert "email" not in user_data
     assert "password" not in user_data
     assert "password_hash" not in user_data
+
+
+def test_expired_session_is_rejected(client, expired_session_token):
+    client.cookies.set("session_token", expired_session_token)
+    response = client.post(
+        "/api/articles",
+        json={
+            "title": "Test Article",
+            "content": "Test content.",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
