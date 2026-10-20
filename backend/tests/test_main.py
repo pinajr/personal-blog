@@ -362,5 +362,6 @@ def test_get_user_does_not_expose_password_hash(client, user_with_password):
 
     user_data = response.json()
     assert user_data["username"] == user_with_password.username
+    assert "email" not in user_data
     assert "password" not in user_data
     assert "password_hash" not in user_data
