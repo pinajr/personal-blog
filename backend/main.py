@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from typing import Annotated
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Response, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
@@ -22,6 +23,18 @@ from schemas import (
 
 SESSION_LIFETIME = timedelta(minutes=30)
 app = FastAPI()
+
+allowed_origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type"],
+)
 
 
 @app.get("/api/health")

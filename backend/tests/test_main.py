@@ -5,6 +5,37 @@ def test_health(client):
     assert response.json() == {"status": "ok"}
 
 
+def test_cors_allows_frontend_origin(client):
+    response = client.options(
+        "/api/articles",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert response.headers["access-control-allow-credentials"] == "true"
+    assert "POST" in response.headers["access-control-allow-methods"]
+    assert "content-type" in response.headers["access-control-allow-headers"].lower()
+
+
+def test_cors_rejects_unknown_origin(client):
+    response = client.options(
+        "/api/articles",
+        headers={
+            "Origin": "http://malicious.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "access-control-allow-origin" not in response.headers
+
+
 def test_articles_reject_limit_below_minimum(client):
     response = client.get("/api/articles?limit=0")
 
