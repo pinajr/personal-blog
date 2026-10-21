@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react'
+import ArticleCard from './components/ArticleCard'
+import type { Article } from './types/article'
 import './App.css'
-
-type Article = {
-    id: number
-    title: string
-    content: string
-    author_id: number
-    created_at: string
-}
 
 function App() {
     const [articles, setArticles] = useState<Article[]>([])
@@ -41,7 +35,7 @@ function App() {
                 <h1>Personal Blog</h1>
                 <p>Loading articles...</p>
             </main>
-        );
+        )
     }
 
     if (error) {
@@ -50,7 +44,7 @@ function App() {
                 <h1>Personal Blog</h1>
                 <p>{error}</p>
             </main>
-        );
+        )
     }
 
     return (
@@ -62,18 +56,12 @@ function App() {
             ) : (
                 <ul>
                     {articles.map((article) => (
-                        <li key={article.id}>
-                            <h2>{article.title}</h2>
-                            <p>{article.content}</p>
-                            <time dateTime={article.created_at}>
-                                {new Date(article.created_at).toLocaleDateString('pt-BR')}
-                            </time>
-                        </li>
+                        <ArticleCard key={article.id} article={article} />
                     ))}
                 </ul>
             )}
         </main>
-    );
+    )
 }
 
 export default App
