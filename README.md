@@ -22,7 +22,7 @@ The backend is built with FastAPI and PostgreSQL. The frontend is planned with R
 - [x] Automated backend tests
 - [x] Command-line script to create the initial user; there is no public registration endpoint
 - [ ] Frontend
-- [ ] Browser security hardening, including CORS and CSRF protection
+- [x] Browser security hardening, including CORS and CSRF protection
 - [ ] Docker and Docker Compose
 - [ ] Production deployment
 
