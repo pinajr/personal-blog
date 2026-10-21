@@ -439,3 +439,33 @@ def test_expired_session_is_rejected(client, expired_session_token):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid or expired session"}
+
+
+def test_get_current_user_profile_returns_authenticated_user(client, user_with_password):
+    response = client.post(
+        "/api/login",
+        json={
+            "username": user_with_password.username,
+            "password": "test-password",
+        },
+    )
+
+    assert response.status_code == 200
+
+    response = client.get("/api/me")
+
+    assert response.status_code == 200
+    user_data = response.json()
+    assert user_data["id"] == user_with_password.id
+    assert user_data["username"] == user_with_password.username
+    assert "email" not in user_data
+    assert "password" not in user_data
+    assert "password_hash" not in user_data
+
+
+def test_get_current_user_profile_requires_authentication(client):
+    response = client.get("/api/me")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid or expired session"}
+    

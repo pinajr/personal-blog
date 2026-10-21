@@ -61,6 +61,11 @@ async def csrf_origin_protection(request: Request, call_next):
     return await call_next(request)
 
 
+@app.get("/api/me", response_model=UserResponse)
+def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
