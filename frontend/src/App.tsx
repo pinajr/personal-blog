@@ -43,7 +43,7 @@ function App() {
             </header>
 
             <main>
-                <h1>Personal Blog</h1>
+                <h1 className="text-3xl font-bold">Personal Blog</h1>
 
                 <section id="articles" aria-labelledby="articles-heading">
                     <h2 id="articles-heading">Articles</h2>
