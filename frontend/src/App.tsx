@@ -17,8 +17,8 @@ function formatDate(value: string) {
 function SiteLayout() {
     return (
         <div id="top" className="min-h-screen bg-[#f7f6f5] text-stone-900">
-            <header className="border-b border-stone-200/80">
-                <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6 sm:px-8">
+            <header className="mx-auto w-full max-w-3xl px-6 pt-6 sm:px-8">
+                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-5 py-4 shadow-xs">
                     <Link to="/" aria-label="Pina home">
                         <img src={logo} alt="Pina" className="h-8 w-auto" />
                     </Link>
