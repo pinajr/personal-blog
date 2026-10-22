@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import ArticleCard from './components/ArticleCard'
 import type { Article } from './types/article'
-import './App.css'
 
 function App() {
     const [articles, setArticles] = useState<Article[]>([])
@@ -33,8 +32,8 @@ function App() {
     const secondaryArticles = articles.slice(1)
 
     return (
-        <div id="top">
-            <header>
+        <div className="min-h-screen bg-stone-50 text-stone-900" id="top">
+            <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-6 py-12">
                 <a href="#top" aria-label="Pina home">Pina</a>
                 <nav aria-label="Main navigation">
                     <a href="#articles">Articles</a>
@@ -42,7 +41,7 @@ function App() {
                 </nav>
             </header>
 
-            <main>
+            <main className="mx-auto w-full max-w-2xl px-6 py-12">
                 <h1 className="text-3xl font-bold">Personal Blog</h1>
 
                 <section id="articles" aria-labelledby="articles-heading">
@@ -85,7 +84,7 @@ function App() {
                 </section>
             </main>
 
-            <footer id="contact">
+            <footer className="mx-auto w-full max-w-2xl px-6 py-12" id="contact">
                 <h2>Contact</h2>
             </footer>
         </div>
