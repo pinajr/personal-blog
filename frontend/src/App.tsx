@@ -128,7 +128,7 @@ function HomePage() {
                                 <time className="mt-2 block text-sm text-stone-500" dateTime={featuredArticle.created_at}>
                                     {formatDate(featuredArticle.created_at)}
                                 </time>
-                                <p className="mt-6 whitespace-pre-line text-base leading-8 text-stone-700">
+                                <p className="mt-6 whitespace-pre-line text-base text-stone-700">
                                     {featuredParagraph}…
                                 </p>
                                 <span className="mt-5 inline-block text-sm font-medium text-[#FE413C]">
