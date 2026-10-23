@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -26,8 +27,13 @@ SESSION_LIFETIME = timedelta(minutes=30)
 app = FastAPI()
 
 ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Frontend development server
-    "http://localhost:8000",  # Backend Swagger UI
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:5173," # Frontend development server
+        "http://localhost:8000" # Backend Swagger UI
+    ).split(",")
+    if origin.strip()
 ]
 
 app.add_middleware(
@@ -93,7 +99,7 @@ def login(
     response.set_cookie(
         key="session_token", value=token, httponly=True,
         max_age=int(SESSION_LIFETIME.total_seconds()),
-        secure=False,
+        secure=os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true",
         samesite="lax",
         path="/",
     )

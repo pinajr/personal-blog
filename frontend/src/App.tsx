@@ -4,7 +4,8 @@ import logo from './assets/logo.svg'
 import ArticleCard from './components/ArticleCard'
 import type { Article } from './types/article'
 
-const API_URL = 'http://localhost:8000/api'
+const API_URL =
+    import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'
 
 function formatDate(value: string) {
     return new Intl.DateTimeFormat('en', {
@@ -23,10 +24,10 @@ function SiteLayout() {
                         <img src={logo} alt="Pina" className="h-8 w-auto" />
                     </Link>
                     <nav aria-label="Main navigation" className="flex items-center gap-6 text-sm text-stone-600">
-                        <a className="transition-colors hover:text-[#FE413C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700" href="/#articles">
+                        <a className="transition-colors hover:text-[#FE413C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700" href={`${import.meta.env.BASE_URL}#articles`}>
                             Articles
                         </a>
-                        <a className="transition-colors hover:text-[#FE413C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700" href="/#contact">
+                        <a className="transition-colors hover:text-[#FE413C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700" href={`${import.meta.env.BASE_URL}#contact`}>
                             Contact
                         </a>
                     </nav>
@@ -212,7 +213,7 @@ function ArticlePage() {
 
     return (
         <main className="mx-auto min-h-[70vh] w-full max-w-3xl px-6 py-12 sm:px-8 sm:py-16">
-            <a href="/#articles" className="text-sm font-medium text-[#FE413C] hover:underline">
+            <a href={`${import.meta.env.BASE_URL}#articles`} className="text-sm font-medium text-[#FE413C] hover:underline">
                 <span aria-hidden="true">←</span> Back to articles
             </a>
 

@@ -16,5 +16,4 @@ COPY . .
 
 EXPOSE 8000
 
-# Set the default command for the container to `uv run uvicorn main:app --host 0.0.0.0 --port 8000`
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uv run uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
